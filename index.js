@@ -82,6 +82,7 @@ app.get('/lobby/:username', (req, res) => {
     res.render('lobby', data);
 });
 
+const port = process.env.PORT || 3000;
 httpServer.listen(3000, () => {
     console.log("Server is up!");
 });
