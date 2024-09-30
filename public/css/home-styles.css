@@ -20,9 +20,9 @@ h1 {
     text-align: center;
 }
 
-nav > p {
-    font-family: 'Times New Roman';
+nav {
     font-weight: bold;
+    font-family: "Times new Roman";
 }
 
 #username-input-box {

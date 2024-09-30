@@ -55,4 +55,64 @@ nav {
 
 #chatbox {
     color: black;
+    display: flex;
+    flex-direction: column-reverse;
+    margin: 10px 0 10px 0;
+    padding: 5px;
+}
+
+.message-box .message-box-name {
+    font-size: 0.9em;
+}
+
+.message-box {
+    /* border: 1px solid white; */
+    display: flex;
+    flex-direction: column;
+    padding: 10px 0 10px 0;
+}
+
+.your-message-box {
+    align-items: flex-end;
+}
+
+.stranger-message-box {
+    align-items: flex-start;
+}
+
+.message-box .message-box-chat {
+    color: white;
+    background-color: black;
+    width: content;
+    display: inline-block;
+    padding: 5px;
+    border-radius: 5px;
+    font-size: 0.8em;
+    position: relative;
+    max-width: 70%;
+}
+
+.message-box .your-message-box-chat::before {
+    content: "";
+    height: 50px;
+    width: 50px;
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    background-color: black;
+    border-radius: 50%;
+}
+
+.message-box .stranger-message-box-chat::after {
+    content: "";
+    height: 10px;
+    width: 10px;
+    position: absolute;
+    top: 100%;
+    background-color: black;
+    border-radius: 50%;
+}
+
+.message-box-system-message {
+    text-align: center;
 }
