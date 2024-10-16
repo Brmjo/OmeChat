@@ -16,15 +16,14 @@ app.set('views', path.join(__dirname, 'views'));
 let readyUsers = [];
 
 io.on('connection', (socket) => {
-    console.log('A user has been connected.');
-    
+    console.log("Someone connected to the socket server.");
+    let roomId;
     socket.on('ready', (data) => {
         const { username } = data;
         readyUsers.push({ socketId: socket.id, username: username });
-        console.log(readyUsers);
-        if(findMatch() == 0) {
-            console.log("Waiting for more users");
-        }
+        const roomIdFromFindMatch = findMatch();
+        roomIdFromFindMatch !== 0 ? roomId = roomIdFromFindMatch : socket.emit("matchingFailed", "Matching failed test");
+        console.log(roomId);
     });
     
     socket.on('joinRoom', (data) => {
@@ -36,14 +35,14 @@ io.on('connection', (socket) => {
     })
     
     socket.on('disconnect', () => {
-        console.log("A user has been disconnected.");
+        socket.emit("strangerDisconnected", "The stranger has left the chat");
+        console.log("Someone disconnected from socket Server.");
         removeUserFromQueue(socket.id);
     });
 });
 
 function removeUserFromQueue(socketIdToRemove) {
     readyUsers.filter(socketId => socketId !== socketIdToRemove);
-    console.log(readyUsers);
 }
 
 function findMatch() {
@@ -52,12 +51,10 @@ function findMatch() {
     const user2 = readyUsers.shift();
     
     const roomId = `${user1.socketId}+${user2.socketId}`;
-    io.to(user1.socketId).emit('matchFound', { roomId, partner: user2.username});
-    io.to(user2.socketId).emit('matchFound', { roomId, partner: user1.username});
     
     socketJoinRoom(user1.socketId, roomId);
     socketJoinRoom(user2.socketId, roomId);
-    return 1;
+    return roomId;
 }
 
 function socketJoinRoom(socketId, roomId) {
@@ -65,6 +62,7 @@ function socketJoinRoom(socketId, roomId) {
     if(socket) {
         socket.join(roomId);
         removeUserFromQueue(socketId);
+        socket.emit('matchFound', { roomId });
     }
 }
 

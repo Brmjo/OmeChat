@@ -13,4 +13,8 @@ readyButton.addEventListener('click', () => {
 socket.on('matchFound', (data) => {
     isSearching = false;
     window.location.href = `/chat/${data.roomId}`;
-})
+});
+
+socket.on('matchingFailed', (data) => {
+    alert(data);
+});

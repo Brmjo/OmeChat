@@ -10,10 +10,10 @@ window.onload = () => {
 messageForm.addEventListener('submit', (event) => {
     event.preventDefault();
     
-    const message = document.getElementById("messageInput").value;
-    if(!message) return alert("Invalid message!");
-    socket.emit('sendMessage', {roomId, message});
-    displayMessage(message, false);
+    const message = document.getElementById("messageInput");
+    if(!message.value) return alert("Invalid message!");
+    socket.emit('sendMessage', {roomId, message: message.value});
+    displayMessage(message.value, false);
     message.value = "";
 })
 
@@ -21,6 +21,10 @@ socket.emit('joinRoom', ({ roomId }));
 
 socket.on('recieveMessage', (data) => {
     displayMessage(data, true);
+});
+
+socket.on("strangerDisconnected", (data) => {
+    alert(data);
 });
 
 function displayMessage(message, isStranger) {
