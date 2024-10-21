@@ -20,7 +20,7 @@ nav {
     align-items: center;
     justify-content: start;
     padding: 20px;
-}
+}11
 
 nav > p {
     font-weight: bold;
@@ -46,4 +46,13 @@ nav > p {
     font-weight: bold;
     margin-top: 25px;
     background-color: #546A7B;
+}
+
+#note-box {
+    margin-top: 50px;
+}
+
+#note-text {
+    color: red;
+    font-family: Sans-Serif;
 }

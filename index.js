@@ -13,55 +13,84 @@ app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-let readyUsers = [];
+const lobbyNamespace = io.of("/lobby");
 
-io.on('connection', (socket) => {
-    console.log("Someone connected to the socket server.");
-    let roomId;
-    socket.on('ready', (data) => {
-        const { username } = data;
-        readyUsers.push({ socketId: socket.id, username: username });
-        const roomIdFromFindMatch = findMatch();
-        roomIdFromFindMatch !== 0 ? roomId = roomIdFromFindMatch : socket.emit("matchingFailed", "Matching failed test");
-        console.log(roomId);
-    });
+let waitingQueue = [];
+
+lobbyNamespace.on('connection', (socket) => {
+    console.log("Someone connected to lobby server.");
     
-    socket.on('joinRoom', (data) => {
-        socket.join(data.roomId);
-    });
+    let username = null;
+    let joinedRoomId = null;
     
-    socket.on('sendMessage', (data) => {
-        socket.to(data.roomId).emit('recieveMessage', data.message);
-    })
+    socket.on("searchForPartner",  (data) => {
+        username = data.username;
+        
+        const findPartnerPromise = new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new Error("There are currently no other users available. Try again in a few minutes."));
+            }, 30000);
+            
+            socket.findPartnerFunctions = { resolve, reject, timeout };
+            
+            waitingQueue.push(socket);
+            
+            findMatch();
+        });
+        
+        findPartnerPromise.then((roomId) => {
+            joinedRoomId = roomId;
+            socket.emit('searchForPartnerSuccess', { roomId });
+        }).catch((message) => {
+            socket.emit('searchForPartnerFailed', { message });
+        });
+    });
     
     socket.on('disconnect', () => {
-        socket.emit("strangerDisconnected", "The stranger has left the chat");
-        console.log("Someone disconnected from socket Server.");
-        removeUserFromQueue(socket.id);
-    });
+        const socketIndex = waitingQueue.indexOf(socket);
+        
+        if(socketIndex !== -1) {
+            waitingQueue.splice(socketIndex, 1);
+            if(socket.findPartnerFunctions) {
+                clearTimeout(socket.findPartnerFunctions.timeout)
+                socket.findPartnerFunctions.reject("User disconnected while waiting.");
+                socket.findPartnerFunctions = null;
+            }
+        }
+    })
 });
 
-function removeUserFromQueue(socketIdToRemove) {
-    readyUsers.filter(socketId => socketId !== socketIdToRemove);
+function removeUserFromQueue(socketToRemove) {
+    const indexOfSocket = waitingQueue.indexOf(socketToRemove);
+    if(indexOfSocket !== -1) {
+        waitingQueue.splice(indexOfSocket, 1);
+    }
 }
 
 function findMatch() {
-    if(readyUsers.length < 2) return 0;
-    const user1 = readyUsers.shift();
-    const user2 = readyUsers.shift();
+    if(waitingQueue.length < 2) {
+        return;
+    }
     
-    const roomId = `${user1.socketId}+${user2.socketId}`;
+    const user1 = waitingQueue.shift();
+    const user2 = waitingQueue.shift();
     
-    socketJoinRoom(user1.socketId, roomId);
-    socketJoinRoom(user2.socketId, roomId);
-    return roomId;
+    clearTimeout(user1.findPartnerFunctions.timeout);
+    clearTimeout(user2.findPartnerFunctions.timeout);
+    
+    const roomId = `${user1.id}+${user2.id}`;
+    
+    user1.findPartnerFunctions.resolve(roomId);
+    user2.findPartnerFunctions.resolve(roomId);
+    
+    socketJoinRoom(user1, roomId);
+    socketJoinRoom(user2, roomId);
 }
 
-function socketJoinRoom(socketId, roomId) {
-    const socket = io.sockets.sockets.get(socketId);
-    if(socket) {
+function socketJoinRoom(socket, roomId) {
+    if(socket && roomId) {
         socket.join(roomId);
-        removeUserFromQueue(socketId);
+        removeUserFromQueue(socket);
         socket.emit('matchFound', { roomId });
     }
 }

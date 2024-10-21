@@ -24,7 +24,12 @@ socket.on('recieveMessage', (data) => {
 });
 
 socket.on("strangerDisconnected", (data) => {
-    alert(data);
+    alert(data.message);
+});
+
+socket.on("disconnect", () => {
+  alert("Test");
+  socket.emit("userDisconnected", { roomId });
 });
 
 function displayMessage(message, isStranger) {

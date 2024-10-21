@@ -1,4 +1,4 @@
-const socket = io();
+const socket = io("/lobby");
 
 let readyButton = document.getElementById("readyButton");
 let isSearching = false;
@@ -7,14 +7,14 @@ readyButton.addEventListener('click', () => {
     if(isSearching) return;
     readyButton.textContent = "Searching for other user. Please wait...";
     isSearching = true;
-    socket.emit('ready', { username });
+    socket.emit('searchForPartner', { username });
 });
 
-socket.on('matchFound', (data) => {
+socket.on('searchForPartnerSuccess', (data) => {
     isSearching = false;
     window.location.href = `/chat/${data.roomId}`;
 });
 
-socket.on('matchingFailed', (data) => {
-    alert(data);
+socket.on('searchForPartnerFailed', (data) => {
+    alert(data.message);
 });
