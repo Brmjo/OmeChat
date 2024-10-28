@@ -14,6 +14,7 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 const lobbyNamespace = io.of("/lobby");
+const chatNamespace = io.of("/chat");
 
 let waitingQueue = [];
 
@@ -28,7 +29,7 @@ lobbyNamespace.on('connection', (socket) => {
         
         const findPartnerPromise = new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
-                reject(new Error("There are currently no other users available. Try again in a few minutes."));
+                reject("There are currently no other users available. Try again in a few minutes.");
             }, 30000);
             
             socket.findPartnerFunctions = { resolve, reject, timeout };
@@ -42,6 +43,7 @@ lobbyNamespace.on('connection', (socket) => {
             joinedRoomId = roomId;
             socket.emit('searchForPartnerSuccess', { roomId });
         }).catch((message) => {
+            removeUserFromQueue(socket);
             socket.emit('searchForPartnerFailed', { message });
         });
     });
@@ -94,6 +96,19 @@ function socketJoinRoom(socket, roomId) {
         socket.emit('matchFound', { roomId });
     }
 }
+
+chatNamespace.on('connection', (socket) => {
+    let joinedRoomId = null;
+    
+    socket.on('joinRoom', (data) => {
+        joinedRoomId = data.roomId;
+        socket.join(data.roomId);
+    })
+    
+    socket.on('sendMessage', (data) => {
+        socket.to(joinedRoomId).emit('recieveMessage', { message: data.message });
+    })
+});
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'html', 'home.html'));

@@ -1,4 +1,4 @@
-const socket = io();
+const socket = io("/chat");
 
 const messageForm = document.getElementById("messageForm");
 const chatBox = document.getElementById("chatbox");
@@ -12,7 +12,7 @@ messageForm.addEventListener('submit', (event) => {
     
     const message = document.getElementById("messageInput");
     if(!message.value) return alert("Invalid message!");
-    socket.emit('sendMessage', {roomId, message: message.value});
+    socket.emit('sendMessage', {message: message.value});
     displayMessage(message.value, false);
     message.value = "";
 })
@@ -20,16 +20,7 @@ messageForm.addEventListener('submit', (event) => {
 socket.emit('joinRoom', ({ roomId }));
 
 socket.on('recieveMessage', (data) => {
-    displayMessage(data, true);
-});
-
-socket.on("strangerDisconnected", (data) => {
-    alert(data.message);
-});
-
-socket.on("disconnect", () => {
-  alert("Test");
-  socket.emit("userDisconnected", { roomId });
+    displayMessage(data.message, true);
 });
 
 function displayMessage(message, isStranger) {

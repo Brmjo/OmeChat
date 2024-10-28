@@ -14,11 +14,13 @@
         <h1>Welcome, <%= username %>!</h1>
         <p>Start chatting with other active users!</p>
         <button id="readyButton">START CHATTING!</button>
+        <div id="loadingAnimation">
+            <div class="custom-loader"></div>
+        </div>
     </div>
     <div id="note-box">
         <p id="note-text">Note: this app is currently under development. Expect bugs and unexpected behaviors within the app.
-        If you noticed some problems, kindly message the developer. Thank you!
-        <br><br>~ John</p>
+        If you noticed some problems, kindly message the developer. Thank you!</p>
     </div>
     
     <script src="/socket.io/socket.io.js"></script>

@@ -58,10 +58,10 @@ nav {
     color: white;
 }
 
-.about {
+.about, .note {
     color: #FAE1DF;
     font-family: 'Times New Roman';
-    margin-top: 100px;
+    margin-top: 50px;
 }
 
 .about > a {
@@ -70,5 +70,4 @@ nav {
     text-decoration: none;
     color: white;
     text-align: center;
-    
 }
